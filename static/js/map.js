@@ -1,27 +1,8 @@
-// We define a variable holding the current key to visualize on the map.
-var currentKey = 'magnitudo';
-var selectedCountries = []
+var min_magnitudo = document.getElementById("min-magnitudo");
+var max_magnitudo = document.getElementById("max-magnitudo");
+var significance = document.getElementById("significance");
 
-//var worldmap = d3.json("{{url_for('static',filename='data/world-countries.geojson')}}" );
-//var eartquakes = d3.csv("{{url_for('static',filename='data/subset-earthquakes.csv')}}");
-
-// Listen to changes of the dropdown to select the key to visualize on
-// the map.
-d3.select('#select-key').on('change', function(a) {
-  // Change the current key and call the function to update the colors.
-  currentKey = d3.select(this).property('value');
-});
-
-// We add a listener to the browser window, calling updateLegend when
-// the window is resized.
-//window.onresize = updateLegend;
-
-// We specify the dimensions for the map container. We use the same
-// width and height as specified in the CSS above.
-// 900 x 600 = 1.5
-var width = (window.innerWidth / 2) - (window.innerWidth * 0.04),
-    height = (window.innerHeight / 2);
-
+var mapFeatures, width, height, path, projection, svg, dataById = null
 // We define a variable to later hold the data of the CSV.
 var earthquakeData;
 
@@ -37,170 +18,200 @@ var eqSizeScale = d3.scale.linear()
                     .domain(eqDomain)
                     .range([1.5,3,4.5,6,7.5,9,13.5])
 
-// We get and prepare the Mustache template, parsing it speeds up future uses
-var template = d3.select('#details').html();
+function reset_map() {
+  d3.select("svg").remove();
+}
 
-// We create a SVG element in the map container and give it some
-// dimensions. We can use a viewbox and preserve the aspect ratio. This
-// also allows a responsive map which rescales and looks good even on
-// different screen sizes
-var svg = d3.select('#map').append('svg')
-  .attr("preserveAspectRatio", "xMidYMid")
-  .attr({
-    width: width,
-    height: height
+function load_map() {
+  if (svg != null){
+    reset_map()
+  }
+  // We define a variable holding the current key to visualize on the map.
+  var currentKey = 'magnitudo';
+  var selectedCountries = []
+
+  //var worldmap = d3.json("{{url_for('static',filename='data/world-countries.geojson')}}" );
+  //var eartquakes = d3.csv("{{url_for('static',filename='data/subset-earthquakes.csv')}}");
+
+  // Listen to changes of the dropdown to select the key to visualize on
+  // the map.
+  d3.select('#select-key').on('change', function(a) {
+    // Change the current key and call the function to update the colors.
+    currentKey = d3.select(this).property('value');
   });
-  //.attr("viewBox", "0 0 " + width + " " + height);
+
+  // We add a listener to the browser window, calling updateLegend when
+  // the window is resized.
+  //window.onresize = updateLegend;
+
+  // We specify the dimensions for the map container. We use the same
+  // width and height as specified in the CSS above.
+  // 900 x 600 = 1.5
+  width = (window.innerWidth / 2) - (window.innerWidth * 0.04),
+  height = (window.innerHeight / 2);
+
+  // We create a SVG element in the map container and give it some
+  // dimensions. We can use a viewbox and preserve the aspect ratio. This
+  // also allows a responsive map which rescales and looks good even on
+  // different screen sizes
+  svg = d3.select('#map').append('svg')
+    .attr("preserveAspectRatio", "xMidYMid")
+    .attr({
+      width: width,
+      height: height
+    });
+    //.attr("viewBox", "0 0 " + width + " " + height);
 
 
-// We add a <g> element to the SVG element and give it a class to
-// style. We also add a class name for Colorbrewer.
-var mapFeatures = svg.append('g')
-  .attr('class', 'features YlGnBu');
+  // We add a <g> element to the SVG element and give it a class to
+  // style. We also add a class name for Colorbrewer.
+  mapFeatures = svg.append('g')
+    .attr('class', 'features YlGnBu');
 
-// We add a <div> container for the tooltip, which is hidden by default.
-var tooltip = d3.select("#map")
-  .append("div")
-  .attr("class", "tooltip hidden");
+  // We add a <div> container for the tooltip, which is hidden by default.
+  var tooltip = d3.select("#map")
+    .append("div")
+    .attr("class", "tooltip hidden");
 
-// Define the zoom and attach it to the map
-var zoom = d3.behavior.zoom()
-  .scaleExtent([1, 10])
-  .on('zoom', doZoom);
-  
-svg.call(zoom).on("dblclick.zoom", null);
+  // Define the zoom and attach it to the map
+  var zoom = d3.behavior.zoom()
+    .scaleExtent([1, 10])
+    .on('zoom', doZoom);
+    
+  svg.call(zoom).on("dblclick.zoom", null);
 
-// We define a geographical projection
-//     https://github.com/mbostock/d3/wiki/Geo-Projections
-// and set some dummy initial scale. The correct scale, center and
-// translate parameters will be set once the features are loaded.
-var projection = d3.geo.mercator()
-  .scale(1);
+  // We define a geographical projection
+  //     https://github.com/mbostock/d3/wiki/Geo-Projections
+  // and set some dummy initial scale. The correct scale, center and
+  // translate parameters will be set once the features are loaded.
+  projection = d3.geo.mercator()
+    .scale(1);
 
-// We prepare a path object and apply the projection to it.
-var path = d3.geo.path()
-  .projection(projection);
+  // We prepare a path object and apply the projection to it.
+  path = d3.geo.path()
+    .projection(projection);
 
-// We prepare an object to later have easier access to the data.
-var dataById = d3.map();
+  // We prepare an object to later have easier access to the data.
+  dataById = d3.map();
 
-// We prepare a quantize scale to categorize the values in 9 groups.
-// The scale returns text values which can be used for the color CSS
-// classes (q0-9, q1-9 ... q8-9). The domain will be defined once the
-// values are known.
-var quantize = d3.scale.quantize()
-  .range(d3.range(9).map(function(i) { return 'q' + i + '-9'; }));
+  // We prepare a quantize scale to categorize the values in 9 groups.
+  // The scale returns text values which can be used for the color CSS
+  // classes (q0-9, q1-9 ... q8-9). The domain will be defined once the
+  // values are known.
+  var quantize = d3.scale.quantize()
+    .range(d3.range(9).map(function(i) { return 'q' + i + '-9'; }));
 
-// We prepare a number format which will always return 2 decimal places.
-var formatNumber = d3.format('.2f');
+  // We prepare a number format which will always return 2 decimal places.
+  var formatNumber = d3.format('.2f');
 
 
-// Load the features from the GeoJSON.
-d3.json("./static/data/world-countries.geojson", function(error, features) {
+  // Load the features from the GeoJSON.
+  d3.json("./static/data/world-countries.geojson", function(error, features) {
 
-  // Get the scale and center parameters from the features.
-  var scaleCenter = calculateScaleCenter(features);
+    // Get the scale and center parameters from the features.
+    var scaleCenter = calculateScaleCenter(features);
 
-  console.log(scaleCenter.scale)
-  console.log(scaleCenter.center)
+    console.log(scaleCenter.scale)
+    console.log(scaleCenter.center)
 
-  projection.scale(330)
-  .center([4, 54])
-  .translate([width/2, height/2]);
-  /*
-  // Apply scale, center and translate parameters.
-  projection.scale(scaleCenter.scale)
-    .center(scaleCenter.center)
+    projection.scale(330)
+    .center([4, 54])
     .translate([width/2, height/2]);
-    */
+    /*
+    // Apply scale, center and translate parameters.
+    projection.scale(scaleCenter.scale)
+      .center(scaleCenter.center)
+      .translate([width/2, height/2]);
+      */
 
-  // Read the data from CSV
-  d3.csv("./static/data/subset-eu.csv", function(data) {
+    // Read the data from CSV
+    d3.csv("./static/data/subset-eu.csv", function(data) {
 
-    filteredData = data.filter(function(row) {
-      return row['magnitudo'] >= 5;
+      filteredData = data.filter(function(row) {
+        return row['magnitudo'] >= 5;
+      });
+
+    data = filteredData
+
+      // We store the data object in the variable which is accessible from
+      // outside of this function.
+      earthquakeData = data;
+
+      // This maps the data of the CSV so it can be easily accessed by
+      // the ID of the state, for example: dataById[Italy]
+      dataById = d3.nest()
+      .key(function(d) { return d.state; })
+      .map(data);
+
+      // get the circle selection and add the data
+      var circles = svg.selectAll("circle")
+          .remove() // this clears any existing circles we have, which will need updated x/y data on resize
+          .data(data);
+      
+      
+      // on the enter selection, add x,y, radius, and color
+      circles.enter()
+      .append("circle")
+      .attr("id", "circle_earthquake")
+      .attr("cx", function(d) {
+              return projection([d.longitude, d.latitude])[0];
+          })
+      .attr("cy", function(d) {
+          return projection([d.longitude, d.latitude])[1];
+          })
+      .attr("r", 0)
+      .transition()
+      .duration(900)
+      .delay(function(d,i){ return 0; })
+      .ease('elastic')
+      .attr("r", function(d) {
+              return eqSizeScale(d.magnitudo);
+          }) 
+      .style("fill", function(d) {
+              return eqColorScale(parseInt(d.magnitudo));
+          })
+      .attr("class", "earthquake");
+      
+      // remove any exit selection
+      circles.exit().remove();
+      addMagnitudeLegend();
+
+      // We add the features to the <g> element created before.
+      // D3 wants us to select the (non-existing) path objects first ...
+      mapFeatures.selectAll('path')
+          // ... and then enter the data. For each feature, a <path>
+          // element is added.
+          .data(features.features)
+          .enter().append('path')
+          // As "d" attribute, we set the path of the feature.
+          .attr('d', path)
+          .style("fill", "#black")
+          // When the mouse moves over a feature, show the tooltip.
+          //.on('mousemove', showTooltip)
+          // When the mouse moves out of a feature, hide the tooltip.
+          //.on('mouseout', hideTooltip)
+          // When a feature is clicked, show the details of it.
+          .on('click', showDetails)
+          .on('dblclick', function(f){
+            var contry = getIdOfFeature(f);
+            if (selectedCountries.includes(contry)) {
+              d3.select(this).style("fill", "black");
+              const index = selectedCountries.indexOf(contry);
+              selectedCountries.splice(index, 1);
+            }
+            else {
+              d3.select(this).style("fill", "red");
+              selectedCountries.push(contry)
+            }
+
+          });
+
+
+
     });
 
-  data = filteredData
-
-    // We store the data object in the variable which is accessible from
-    // outside of this function.
-    earthquakeData = data;
-
-    // This maps the data of the CSV so it can be easily accessed by
-    // the ID of the state, for example: dataById[Italy]
-    dataById = d3.nest()
-    .key(function(d) { return d.state; })
-    .map(data);
-
-    // get the circle selection and add the data
-    var circles = svg.selectAll("circle")
-        .remove() // this clears any existing circles we have, which will need updated x/y data on resize
-        .data(data);
-    
-    
-    // on the enter selection, add x,y, radius, and color
-    circles.enter()
-    .append("circle")
-    .attr("id", "circle_earthquake")
-    .attr("cx", function(d) {
-            return projection([d.longitude, d.latitude])[0];
-        })
-    .attr("cy", function(d) {
-        return projection([d.longitude, d.latitude])[1];
-        })
-    .attr("r", 0)
-    .transition()
-    .duration(900)
-    .delay(function(d,i){ return 0; })
-    .ease('elastic')
-    .attr("r", function(d) {
-            return eqSizeScale(d.magnitudo);
-        }) 
-    .style("fill", function(d) {
-            return eqColorScale(parseInt(d.magnitudo));
-        })
-    .attr("class", "earthquake");
-    
-    // remove any exit selection
-    circles.exit().remove();
-    addMagnitudeLegend();
-
-    // We add the features to the <g> element created before.
-    // D3 wants us to select the (non-existing) path objects first ...
-    mapFeatures.selectAll('path')
-        // ... and then enter the data. For each feature, a <path>
-        // element is added.
-        .data(features.features)
-        .enter().append('path')
-        // As "d" attribute, we set the path of the feature.
-        .attr('d', path)
-        .style("fill", "#black")
-        // When the mouse moves over a feature, show the tooltip.
-        //.on('mousemove', showTooltip)
-        // When the mouse moves out of a feature, hide the tooltip.
-        //.on('mouseout', hideTooltip)
-        // When a feature is clicked, show the details of it.
-        .on('click', showDetails)
-        .on('dblclick', function(f){
-          var contry = getIdOfFeature(f);
-          if (selectedCountries.includes(contry)) {
-            d3.select(this).style("fill", "black");
-            const index = selectedCountries.indexOf(contry);
-            selectedCountries.splice(index, 1);
-          }
-          else {
-            d3.select(this).style("fill", "red");
-            selectedCountries.push(contry)
-          }
-
-        });
-
-
-
   });
-
-});
+}
 
 var addMagnitudeLegend = function()
 {

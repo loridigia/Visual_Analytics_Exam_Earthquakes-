@@ -37,7 +37,7 @@
             <div class="col-sm-4">
               <div class="form-group">
                 <p class="text-center">TO DATE</p>
-                <div class='input-group date' id='timestart'>
+                <div class='input-group date' id='timeend'>
                     <input type='text' class="form-control" />
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
@@ -105,7 +105,7 @@
             </div>
             <div class="col-sm-4">
               <div class="text-center">
-                <button type="button" class="text-center btn btn-primary">APPLY FILTERS</button>
+                <button type="button" class="text-center btn btn-primary" onclick="load_map()">APPLY FILTERS</button>
               </div>
             </div>
             <div class="col-sm-4">
@@ -130,7 +130,7 @@
           <div class="row"> <!-- FIRST ROW-->
             <div class="col-sm-12">
               <div class="text-center">
-                <p class="text-center">SGT-E ALGORHITM</p>
+                <p class="text-center">T-SNE ALGORHITM</p>
                 <div style="border: 2px; border-style: dotted; border-color: #327ab7;">
                   <h3>SELECT 2 COUNTRIES ON THE MAP: 0 SELECTED</h3>
                 </div>
@@ -164,7 +164,13 @@
          $('#timestart').datetimepicker({
                format: 'DD/MM/YYYY'
          });
-      });      
+      }); 
+      $(function() {              
+         // Bootstrap DateTimePicker v4
+         $('#timeend').datetimepicker({
+               format: 'DD/MM/YYYY'
+         });
+      });       
   </script>
     
   </body>
