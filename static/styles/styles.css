@@ -33,6 +33,10 @@
     ry: 10;
   }
 
+  svg {
+    background-color: #b8daff;
+  }
+
   g.features {
     stroke: #d8d8d8;
     stroke-width: 0.5;

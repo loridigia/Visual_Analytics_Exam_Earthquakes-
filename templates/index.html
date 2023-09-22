@@ -47,24 +47,26 @@
             </div>
             <div class="col-sm-4">
               <p class="text-center">SIGNIFICANCE</p>
-              <select class="form-control" id="select-key">
+              <select class="form-control" id="significance">
                 <option value="*" selected="selected">ALL</option>
-                <option value="0-199">0 - 199</option>
-                <option value="200-299">200 - 299</option>
-                <option value="300-399">300 - 399</option>
-                <option value="400-499">400 - 499</option>
+                <option value="0-49">0-49</option>
+                <option value="50-99">200 - 299</option>
+                <option value="100-199">300 - 399</option>
+                <option value="200-299">400 - 499</option>
+                <option value="300-399">400 - 499</option>
+                <option value=">400">> 400</option>
               </select>
             </div>
           </div>
           <div class="row"> <!-- SECOND ROW-->
             <div class="col-sm-4">
               <p class="text-center">MIN MAG</p>
-              <select class="form-control" id="select-key">
-                <option value="1" selected="selected">1</option>
+              <select class="form-control" id="min-magnitudo">
+                <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
-                <option value="5">5</option>
+                <option value="5" selected="selected">5</option>
                 <option value="6">6</option>
                 <option value="7">7</option>
                 <option value="8">8</option>
@@ -73,8 +75,8 @@
             </div>
             <div class="col-sm-4">
               <p class="text-center">MAX MAG</p>
-              <select class="form-control" id="select-key">
-                <option value="1" selected="selected">1</option>
+              <select class="form-control" id="max-magnitudo">
+                <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
@@ -82,21 +84,15 @@
                 <option value="6">6</option>
                 <option value="7">7</option>
                 <option value="8">8</option>
-                <option value="9">9</option>
+                <option value="9" selected="selected">9</option>
               </select>
             </div>
             <div class="col-sm-4">
               <p class="text-center">DEPTH</p>
-              <select class="form-control" id="select-key">
+              <select class="form-control" id="depth">
                 <option value="*" selected="selected">ALL</option>
                 <option value="0-10">0-10</option>
                 <option value="10-20">10-20</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
               </select>
             </div>
           </div>
@@ -113,7 +109,9 @@
           </div>
           <div class="row" style="margin-top: 15px;"> <!-- THIRD ROW-->
             <div class="col-sm-12">
-              <div id="map"></div>
+              <p>** Perform 1 click to show details - 2 clicks to select for elaboration</p>
+              <div id="map">
+              </div>
             </div>
           </div>
           <div class="row"> <!-- FOURTH ROW-->
@@ -132,7 +130,7 @@
               <div class="text-center">
                 <p class="text-center">T-SNE ALGORHITM</p>
                 <div style="border: 2px; border-style: dotted; border-color: #327ab7;">
-                  <h3>SELECT 2 COUNTRIES ON THE MAP: 0 SELECTED</h3>
+                  <h3 id="TSNE_text">SELECT 2 OR MORE COUNTRIES ON THE MAP</h3>
                 </div>
               </div>
             </div>
@@ -162,15 +160,20 @@
       $(function() {              
          // Bootstrap DateTimePicker v4
          $('#timestart').datetimepicker({
-               format: 'DD/MM/YYYY'
+              defaultDate: "1/1/2013",
+              format: 'DD/MM/YYYY'
          });
       }); 
       $(function() {              
          // Bootstrap DateTimePicker v4
          $('#timeend').datetimepicker({
-               format: 'DD/MM/YYYY'
+              defaultDate: "1/1/2023",
+              format: 'DD/MM/YYYY'
          });
-      });       
+      });      
+
+      
+      window.onload = load_map;
   </script>
     
   </body>

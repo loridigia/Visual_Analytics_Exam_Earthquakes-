@@ -1,6 +1,44 @@
-var min_magnitudo = document.getElementById("min-magnitudo");
-var max_magnitudo = document.getElementById("max-magnitudo");
-var significance = document.getElementById("significance");
+var min_magnitudo = null
+var max_magnitudo = null
+var min_depth = null
+var max_depth = null
+var min_significance = null
+var max_significance = null
+var min_date = null
+var max_date = null
+
+function load_filters() {
+  min_magnitudo = document.getElementById("min-magnitudo").value;
+  max_magnitudo = document.getElementById("max-magnitudo").value;
+  var significance = document.getElementById("significance").value;
+  if (significance == "*"){
+    min_significance = -999999
+    max_significance = 999999
+  } else {
+    splitted = depth.split("-")
+    min_depth = splitted[0]
+    max_depth = splitted[1]
+  }
+  var depth = document.getElementById("depth").value;
+  if (depth == "*"){
+    min_depth = -999999
+    max_depth = 999999
+  } else {
+    splitted = depth.split("-")
+    min_depth = splitted[0]
+    max_depth = splitted[1]
+  }
+
+  min_date = $('#timestart').data('DateTimePicker').date()
+  max_date = $('#timeend').data('DateTimePicker').date()
+
+  console.log("MIN MAG: " + min_magnitudo)
+  console.log("MAX MAG: " + max_magnitudo)
+  console.log("significance: " + significance)
+  console.log("min_date: " + min_date)
+  console.log("max_date: " + max_date)
+
+}
 
 var mapFeatures, width, height, path, projection, svg, dataById = null
 // We define a variable to later hold the data of the CSV.
@@ -23,22 +61,15 @@ function reset_map() {
 }
 
 function load_map() {
+  load_filters()
   if (svg != null){
     reset_map()
   }
   // We define a variable holding the current key to visualize on the map.
-  var currentKey = 'magnitudo';
   var selectedCountries = []
 
   //var worldmap = d3.json("{{url_for('static',filename='data/world-countries.geojson')}}" );
   //var eartquakes = d3.csv("{{url_for('static',filename='data/subset-earthquakes.csv')}}");
-
-  // Listen to changes of the dropdown to select the key to visualize on
-  // the map.
-  d3.select('#select-key').on('change', function(a) {
-    // Change the current key and call the function to update the colors.
-    currentKey = d3.select(this).property('value');
-  });
 
   // We add a listener to the browser window, calling updateLegend when
   // the window is resized.
@@ -128,8 +159,17 @@ function load_map() {
     d3.csv("./static/data/subset-eu.csv", function(data) {
 
       filteredData = data.filter(function(row) {
-        return row['magnitudo'] >= 5;
+        return row['magnitudo'] >= min_magnitudo &
+              row['magnitudo'] <= max_magnitudo &&
+              row['significance'] >= min_magnitudo &&;
       });
+
+      var min_magnitudo = null
+var max_magnitudo = null
+var significance = null
+var min_date = null
+var max_date = null
+
 
     data = filteredData
 
