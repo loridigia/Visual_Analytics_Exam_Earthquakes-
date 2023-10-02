@@ -6,18 +6,20 @@ var min_significance = null
 var max_significance = null
 var min_date = null
 var max_date = null
+var selectedCountries = []
 
 function load_filters() {
-  min_magnitudo = document.getElementById("min-magnitudo").value;
-  max_magnitudo = document.getElementById("max-magnitudo").value;
-  var significance = document.getElementById("significance").value;
+  min_magnitudo = Number.parseInt(document.getElementById("min-magnitudo").value)
+  max_magnitudo = Number.parseInt(document.getElementById("max-magnitudo").value)
+
+  var significance = document.getElementById("significance").value
   if (significance == "*"){
     min_significance = -999999
     max_significance = 999999
   } else {
-    splitted = depth.split("-")
-    min_depth = splitted[0]
-    max_depth = splitted[1]
+    splitted = significance.split("-")
+    min_depth = Number.parseInt(splitted[0])
+    max_depth = Number.parseInt(splitted[1])
   }
   var depth = document.getElementById("depth").value;
   if (depth == "*"){
@@ -25,12 +27,14 @@ function load_filters() {
     max_depth = 999999
   } else {
     splitted = depth.split("-")
-    min_depth = splitted[0]
-    max_depth = splitted[1]
+    min_depth = Number.parseInt(splitted[0])
+    max_depth = Number.parseInt(splitted[1])
   }
 
   min_date = $('#timestart').data('DateTimePicker').date()
+  min_date = Date.parse(min_date.toString())
   max_date = $('#timeend').data('DateTimePicker').date()
+  max_date = Date.parse(max_date.toString())
 
   console.log("MIN MAG: " + min_magnitudo)
   console.log("MAX MAG: " + max_magnitudo)
@@ -66,10 +70,7 @@ function load_map() {
     reset_map()
   }
   // We define a variable holding the current key to visualize on the map.
-  var selectedCountries = []
-
-  //var worldmap = d3.json("{{url_for('static',filename='data/world-countries.geojson')}}" );
-  //var eartquakes = d3.csv("{{url_for('static',filename='data/subset-earthquakes.csv')}}");
+  selectedCountries = []
 
   // We add a listener to the browser window, calling updateLegend when
   // the window is resized.
@@ -148,27 +149,17 @@ function load_map() {
     projection.scale(330)
     .center([4, 54])
     .translate([width/2, height/2]);
-    /*
-    // Apply scale, center and translate parameters.
-    projection.scale(scaleCenter.scale)
-      .center(scaleCenter.center)
-      .translate([width/2, height/2]);
-      */
 
     // Read the data from CSV
-    d3.csv("./static/data/subset-eu.csv", function(data) {
+    d3.csv("./static/data/eartquakes-edited_eu_2000_mag1.csv", function(data) {
 
       filteredData = data.filter(function(row) {
-        return row['magnitudo'] >= min_magnitudo &
-              row['magnitudo'] <= max_magnitudo &&
-              row['significance'] >= min_magnitudo &&;
-      });
-
-      var min_magnitudo = null
-var max_magnitudo = null
-var significance = null
-var min_date = null
-var max_date = null
+        row['date'] = Date.parse(row['date']);
+        return row['date'] >= min_date && row['date'] <= max_date
+                && row['magnitudo'] >= min_magnitudo && row['magnitudo'] <= max_magnitudo
+                && row['significance'] >= min_significance && row['significance'] <= max_significance
+                && row['depth'] >= min_depth && row['depth'] <= max_depth
+        });
 
 
     data = filteredData
@@ -192,6 +183,7 @@ var max_date = null
       // on the enter selection, add x,y, radius, and color
       circles.enter()
       .append("circle")
+      .on('click', clickCircle)
       .attr("id", "circle_earthquake")
       .attr("cx", function(d) {
               return projection([d.longitude, d.latitude])[0];
@@ -226,11 +218,6 @@ var max_date = null
           // As "d" attribute, we set the path of the feature.
           .attr('d', path)
           .style("fill", "#black")
-          // When the mouse moves over a feature, show the tooltip.
-          //.on('mousemove', showTooltip)
-          // When the mouse moves out of a feature, hide the tooltip.
-          //.on('mouseout', hideTooltip)
-          // When a feature is clicked, show the details of it.
           .on('click', showDetails)
           .on('dblclick', function(f){
             var contry = getIdOfFeature(f);
@@ -245,8 +232,6 @@ var max_date = null
             }
 
           });
-
-
 
     });
 
@@ -311,62 +296,64 @@ var addMagnitudeLegend = function()
                                    + (d.y-15) + ")"; });
 }
 
-/**
- * Show the details of a feature in the details <div> container.
- * The content is rendered with a Mustache template.
- *
- * @param {object} f - A GeoJSON Feature object.
- */
+function clickCircle(f) {
+  showStateDetails(f['state'])
+}
+
 function showDetails(f) {
+  var id = getIdOfFeature(f);
+  showStateDetails(id)
 
-    // Get the ID of the feature.
-    var id = getIdOfFeature(f);
-    var data = dataById[id];
+}
 
-    var columns = ['magnitudo', 'depth', 'significance', 'date'], column_id = 'state', column_class = 'norm';
-    var h1 = d3.select('#details_h1')
-    var table1 = d3.select('#map_table')
-    table1.selectAll("tr, td, thead, tbody").remove();
-    var thead = table1.append('thead');
-    var tbody = table1.append('tbody');
+function showStateDetails(countryName) {
+  var data = dataById[countryName];
 
-    if (data != undefined) {
-        state = data[0]['state']
-        h1.text(state)
-    }
-    else { 
-        h1.text("No Data"); 
-        return 
-    }
+  var columns = ['magnitudo', 'depth', 'significance', 'date'], column_id = 'state', column_class = 'norm';
+  var h1 = d3.select('#details_h1')
+  var table1 = d3.select('#map_table')
+  table1.selectAll("tr, td, thead, tbody").remove();
+  var thead = table1.append('thead');
+  var tbody = table1.append('tbody');
 
-    // append the header row
-    thead.append('tr')
-        .selectAll('th')
-        .data(["magnitudo", "depth", "significance", "date"])
-        .enter()
-        .append('th')
-        .text(function(column) {
-        return column;
-        });
+  if (data != undefined) {
+      state = data[0]['state']
+      count = data.length
+      h1.text(state + " : " + count)
+  }
+  else { 
+      h1.text("No Data"); 
+      return 
+  }
 
-    // create a row for each object in the data
-    var rows = tbody.selectAll('tr')
-        .data(data)
-        .enter()
-        .append('tr');
+  // append the header row
+  thead.append('tr')
+      .selectAll('th')
+      .data(["magnitudo", "depth", "significance", "date"])
+      .enter()
+      .append('th')
+      .text(function(column) {
+      return column;
+      });
 
-  // create a cell in each row for each column
-    var cells = rows.selectAll('td')
-        .data(function(row) {
-        return columns.map(function(column) {
-            return {
-                column: column,
-                value: row[column],
-                id: row[column_id],
-                class: row[column_class]
-                };
-        });
-        })
+  // create a row for each object in the data
+  var rows = tbody.selectAll('tr')
+      .data(data)
+      .enter()
+      .append('tr');
+
+// create a cell in each row for each column
+  var cells = rows.selectAll('td')
+      .data(function(row) {
+      return columns.map(function(column) {
+          return {
+              column: column,
+              value: column == "date" ? new Date(row[column]).toUTCString() : row[column],
+              id: row[column_id],
+              class: row[column_class]
+              };
+      });
+      })
     .enter()
     .append('td')
     .attr('id', function(d) { return d.column === 'state' ? d.id : null; })
@@ -374,13 +361,6 @@ function showDetails(f) {
       return d.value;
     });
 
-
-  // Hide the initial container.
-  //d3.select('#initial').classed("hidden", true);
-
-  // Put the HTML output in the details container and show (unhide) it.
-  //d3.select('#details').html(detailsHtml);
-  //d3.select('#details').classed("hidden", false);
 }
 
 /**
@@ -440,6 +420,7 @@ function doZoom() {
     // Keep the stroke width proportional. The initial stroke width
     // (0.5) must match the one set in the CSS.
     .style("stroke-width", 0.5 / d3.event.scale + "px");
+
 
     circles = svg.selectAll("#circle_earthquake").attr("transform",
     "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")")

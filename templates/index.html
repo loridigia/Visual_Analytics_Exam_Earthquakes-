@@ -132,13 +132,14 @@
                 <div style="border: 2px; border-style: dotted; border-color: #327ab7;">
                   <h3 id="TSNE_text">SELECT 2 OR MORE COUNTRIES ON THE MAP</h3>
                 </div>
+                <div id="scatterplot"></div>
               </div>
             </div>
           </div>
           <div class="row" style="margin-top: 15px;"> <!-- SECOND ROW-->
             <div class="col-sm-12">
               <div class="text-center">
-                <button type="button" class="text-center btn btn-primary">ELABORATE</button>
+                <button type="button" class="text-center btn btn-primary" onclick="performTSNE()">ELABORATE</button>
               </div>
             </div>
         </div>
@@ -155,12 +156,34 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js"></script>
 
     <!-- Custom JS code -->
+    <script src="{{url_for('static',filename='/js/utils.js')}}"></script>
     <script src="{{url_for('static',filename='/js/map.js')}}"></script>
+    <script src="{{url_for('static',filename='/js/scatterplot.js')}}"></script>
+    <script type="text/javascript">
+      function performTSNE() {
+        console.log(selectedCountries)
+        var country_data = {}
+        for (const country of selectedCountries) {
+          country_data[country] = dataById[country]
+        }
+        fetch("http://localhost:4242/tsne", {
+          method: "POST",
+          body: JSON.stringify({
+            countries: country_data
+          }),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8"
+          }
+        })
+        .then((response) => response.json())
+        .then((json) => load_scatterplot(json));
+      }
+    </script>
     <script type="text/javascript">
       $(function() {              
          // Bootstrap DateTimePicker v4
          $('#timestart').datetimepicker({
-              defaultDate: "1/1/2013",
+              defaultDate: "1/1/2000",
               format: 'DD/MM/YYYY'
          });
       }); 
