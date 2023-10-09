@@ -37,6 +37,14 @@
     background-color: #b8daff;
   }
 
+  #scatter-svg {
+    background-color: #ffffff;
+  }
+
+  #legend-scatter-svg {
+    background-color: #ffffff;
+  }
+
   g.features {
     stroke: #d8d8d8;
     stroke-width: 0.5;

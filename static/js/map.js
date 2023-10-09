@@ -1,3 +1,4 @@
+
 var min_magnitudo = null
 var max_magnitudo = null
 var min_depth = null
@@ -44,19 +45,20 @@ function load_filters() {
 
 }
 
-var mapFeatures, width, height, path, projection, svg, dataById = null
+var mapFeatures, width, height, path, projection, svg
+let dataById = null
 // We define a variable to later hold the data of the CSV.
 var earthquakeData;
 
 var eqDomain = [1, 2, 3, 4, 5, 6, 9 ];
-var eqColorScale = d3.scale.linear()
+var eqColorScale = d3.scaleLinear()
                     .domain(eqDomain)
                     .range([
                             '#fdd49e','#fdbb84',
                             '#fc8d59','#ef6548',
                             '#d7301f','#b30000','#7f0000'
                             ]);  
-var eqSizeScale = d3.scale.linear()
+var eqSizeScale = d3.scaleLinear()
                     .domain(eqDomain)
                     .range([1.5,3,4.5,6,7.5,9,13.5])
 
@@ -69,11 +71,7 @@ function load_map() {
   if (svg != null){
     reset_map()
   }
-  // We define a variable holding the current key to visualize on the map.
-  selectedCountries = []
 
-  // We add a listener to the browser window, calling updateLegend when
-  // the window is resized.
   //window.onresize = updateLegend;
 
   // We specify the dimensions for the map container. We use the same
@@ -86,72 +84,56 @@ function load_map() {
   // dimensions. We can use a viewbox and preserve the aspect ratio. This
   // also allows a responsive map which rescales and looks good even on
   // different screen sizes
-  svg = d3.select('#map').append('svg')
-    .attr("preserveAspectRatio", "xMidYMid")
-    .attr({
-      width: width,
-      height: height
-    });
-    //.attr("viewBox", "0 0 " + width + " " + height);
+  svg = d3.select('#map')
+    .append('svg')
+    .attr('preserveAspectRatio', 'xMidYMid')
+    .attr('width', width)
+    .attr('height', height);
 
-
-  // We add a <g> element to the SVG element and give it a class to
-  // style. We also add a class name for Colorbrewer.
   mapFeatures = svg.append('g')
     .attr('class', 'features YlGnBu');
 
-  // We add a <div> container for the tooltip, which is hidden by default.
-  var tooltip = d3.select("#map")
-    .append("div")
-    .attr("class", "tooltip hidden");
-
   // Define the zoom and attach it to the map
-  var zoom = d3.behavior.zoom()
+  var zoom = d3.zoom()
     .scaleExtent([1, 10])
     .on('zoom', doZoom);
-    
+      
   svg.call(zoom).on("dblclick.zoom", null);
 
   // We define a geographical projection
   //     https://github.com/mbostock/d3/wiki/Geo-Projections
   // and set some dummy initial scale. The correct scale, center and
   // translate parameters will be set once the features are loaded.
-  projection = d3.geo.mercator()
+  projection = d3.geoMercator()
     .scale(1);
 
   // We prepare a path object and apply the projection to it.
-  path = d3.geo.path()
+  path = d3.geoPath()
     .projection(projection);
 
   // We prepare an object to later have easier access to the data.
-  dataById = d3.map();
-
-  // We prepare a quantize scale to categorize the values in 9 groups.
-  // The scale returns text values which can be used for the color CSS
-  // classes (q0-9, q1-9 ... q8-9). The domain will be defined once the
-  // values are known.
-  var quantize = d3.scale.quantize()
-    .range(d3.range(9).map(function(i) { return 'q' + i + '-9'; }));
+  dataById = new Map();
 
   // We prepare a number format which will always return 2 decimal places.
   var formatNumber = d3.format('.2f');
 
 
+  console.log("test")
   // Load the features from the GeoJSON.
-  d3.json("./static/data/world-countries.geojson", function(error, features) {
+  d3.json('./static/data/world-countries.geojson')
+  .then(function (features) {
 
     // Get the scale and center parameters from the features.
     var scaleCenter = calculateScaleCenter(features);
 
-    console.log(scaleCenter.scale)
-    console.log(scaleCenter.center)
-
     projection.scale(330)
     .center([4, 54])
     .translate([width/2, height/2]);
+    
 
     // Read the data from CSV
-    d3.csv("./static/data/eartquakes-edited_eu_2000_mag1.csv", function(data) {
+    d3.csv('./static/data/eartquakes-edited_eu_2000_mag1.csv')
+    .then(function(data) {
 
       filteredData = data.filter(function(row) {
         row['date'] = Date.parse(row['date']);
@@ -164,74 +146,60 @@ function load_map() {
 
     data = filteredData
 
-      // We store the data object in the variable which is accessible from
-      // outside of this function.
-      earthquakeData = data;
+    // We store the data object in the variable which is accessible from
+    // outside of this function.
+    earthquakeData = data;
 
-      // This maps the data of the CSV so it can be easily accessed by
-      // the ID of the state, for example: dataById[Italy]
-      dataById = d3.nest()
-      .key(function(d) { return d.state; })
-      .map(data);
+    // This maps the data of the CSV so it can be easily accessed by
+    // the ID of the state, for example: dataById[Italy]
+    dataById = d3.group(data, (d) => d.state);
 
-      // get the circle selection and add the data
-      var circles = svg.selectAll("circle")
-          .remove() // this clears any existing circles we have, which will need updated x/y data on resize
-          .data(data);
-      
-      
-      // on the enter selection, add x,y, radius, and color
-      circles.enter()
-      .append("circle")
-      .on('click', clickCircle)
-      .attr("id", "circle_earthquake")
-      .attr("cx", function(d) {
-              return projection([d.longitude, d.latitude])[0];
-          })
-      .attr("cy", function(d) {
-          return projection([d.longitude, d.latitude])[1];
-          })
-      .attr("r", 0)
+    // get the circle selection and add the data
+    var circles = svg.selectAll("circle")
+        .remove() // this clears any existing circles we have, which will need updated x/y data on resize
+        .data(data);
+    
+    // Append new circles and set their initial attributes
+    circles
+      .enter()
+      .append('circle')
+      .attr('class', 'earthquake')
+      .attr('id', 'circle_earthquake')
+      .attr('cx', (d) => projection([d.longitude, d.latitude])[0])
+      .attr('cy', (d) => projection([d.longitude, d.latitude])[1])
+      .attr('r', 0)
+      .style('fill', (d) => eqColorScale(parseInt(d.magnitudo)))
+      .on('click', function(event, f) {clickCircle(f)})
       .transition()
       .duration(900)
-      .delay(function(d,i){ return 0; })
-      .ease('elastic')
-      .attr("r", function(d) {
-              return eqSizeScale(d.magnitudo);
-          }) 
-      .style("fill", function(d) {
-              return eqColorScale(parseInt(d.magnitudo));
-          })
-      .attr("class", "earthquake");
+      .ease(d3.easeElastic)
+      .attr('r', (d) => eqSizeScale(d.magnitudo));
       
       // remove any exit selection
       circles.exit().remove();
-      addMagnitudeLegend();
 
-      // We add the features to the <g> element created before.
-      // D3 wants us to select the (non-existing) path objects first ...
       mapFeatures.selectAll('path')
-          // ... and then enter the data. For each feature, a <path>
-          // element is added.
-          .data(features.features)
-          .enter().append('path')
-          // As "d" attribute, we set the path of the feature.
-          .attr('d', path)
-          .style("fill", "#black")
-          .on('click', showDetails)
-          .on('dblclick', function(f){
-            var contry = getIdOfFeature(f);
-            if (selectedCountries.includes(contry)) {
-              d3.select(this).style("fill", "black");
-              const index = selectedCountries.indexOf(contry);
-              selectedCountries.splice(index, 1);
-            }
-            else {
-              d3.select(this).style("fill", "red");
-              selectedCountries.push(contry)
-            }
+      .data(features.features)
+      .join('path') // Use `join` to handle enter, update, and exit selections
+      .attr('d', path)
+      .style("fill", "black")
+      .on('click', function(event, f) {
+        showDetails(f)
+      })
+      .on('dblclick', function(event, f) {
+        const country = getIdOfFeature(f);
+    
+        if (selectedCountries.includes(country)) {
+          d3.select(this).style("fill", "black");
+          const index = selectedCountries.indexOf(country);
+          selectedCountries.splice(index, 1);
+        } else {
+          d3.select(this).style("fill", "red");
+          selectedCountries.push(country);
+        }
+      });
 
-          });
+      addMagnitudeLegend();
 
     });
 
@@ -240,60 +208,52 @@ function load_map() {
 
 var addMagnitudeLegend = function()
 {
-  // create a list of objects representing a legend entry
-  // so we can add x,y coordinates to each object and apply text
-  // to each magnitude circle:
-  // example here: http://stackoverflow.com/questions/11857615/placing-labels-at-the-center-of-nodes-in-d3-js
-  var legendObjs = [];
+const legendObjs = [];
   eqDomain.forEach(function(d,i) {
      legendObjs[i] = { mag: d };
   });
-  
-  // some sizing and location info
-  var lNodeSize = 40;
-  var lXOffset = 15; 
-  var lYOffset = 5;
-  var lTopLeft = [lXOffset, height - lNodeSize - lNodeSize / 3 - lYOffset ];
-  var lBottomRight = [ (lNodeSize + 1) * legendObjs.length, height - lYOffset];
-  
-  // add a bounding rectangle
-  svg.append("svg:rect")
-      .attr("class", "legend-box")
-      .attr("width", lBottomRight[0] - lTopLeft[0] + "px")
-      .attr("height", lBottomRight[1] - lTopLeft[1])
-      .style("fill", "white")
-      .attr("transform","translate("+lTopLeft[0]+","+lTopLeft[1]+")");
-   
-  // append the data and get the enter selection
-  var lnodes = svg.append("svg:g")
-      .selectAll("g") 
-      .data(legendObjs, function(d,i){ return d.mag; })
-      .enter();
-          
-  // append the circles to the enter selection
-  lnodes.append("circle")
-        .attr("r", function(d){ return eqSizeScale(d.mag); })
-        .attr("class", "earthquake")
-        .style("fill", function(d){ return eqColorScale(d.mag); })
-        .attr("transform", function(d, i) {
-                               d.x = 2 * lXOffset + lNodeSize * i;
-                               d.y = lBottomRight[1] - lNodeSize / 2;
-                               return "translate("
-                                        + d.x + ","+ d.y 
-                                        + ")";
-                            });
-  // append the text to each "svg:g" node, which also contains a circle
-  lnodes.append("text")
-        .text(function(d) { return "M"+d.mag; })
-        .attr("class", "legend-mag-text")
-        .attr("text-anchor", "middle" )
-        // the transform here contains an offset from the
-        // middle of the g element, which is also the middle of the circle
-        .style('fill', 'black')
-        .attr("transform", function(d) {
-                                return "translate("
-                                   + d.x + ","
-                                   + (d.y-15) + ")"; });
+
+// Some sizing and location info
+var lNodeSize = 40;
+var lXOffset = 15; 
+var lYOffset = 5;
+var lTopLeft = [lXOffset, height - lNodeSize - lNodeSize / 3 - lYOffset ];
+var lBottomRight = [ (lNodeSize + 1) * legendObjs.length, height - lYOffset];
+
+// Add a bounding rectangle
+svg.append("rect")
+  .attr("class", "legend-box")
+  .attr("width", lBottomRight[0] - lTopLeft[0] + "px")
+  .attr("height", lBottomRight[1] - lTopLeft[1])
+  .style("fill", "white")
+  .attr("transform", "translate(" + lTopLeft[0] + "," + lTopLeft[1] + ")");
+
+// Append the data and get the enter selection
+var lnodes = svg.selectAll("g")
+  .data(legendObjs)
+  .join("g");
+
+// Append the circles to the enter selection
+lnodes.append("circle")
+  .attr("r", function (d) { return eqSizeScale(d.mag); })
+  .attr("class", "earthquake")
+  .style("fill", function (d) { return eqColorScale(d.mag); })
+  .attr("transform", function (d, i) {
+    d.x = 2 * lXOffset + lNodeSize * i;
+    d.y = lBottomRight[1] - lNodeSize / 2;
+    return "translate(" + d.x + "," + d.y + ")";
+  });
+
+// Append the text to each "svg:g" node, which also contains a circle
+lnodes.append("text")
+  .text(function (d) { return "M" + d.mag; })
+  .attr("class", "legend-mag-text")
+  .attr("text-anchor", "middle")
+  .style('fill', 'black')
+  .attr("transform", function (d) {
+    return "translate(" + d.x + "," + (d.y - 15) + ")";
+  });
+
 }
 
 function clickCircle(f) {
@@ -307,7 +267,7 @@ function showDetails(f) {
 }
 
 function showStateDetails(countryName) {
-  var data = dataById[countryName];
+  const data = dataById.get(countryName);  
 
   var columns = ['magnitudo', 'depth', 'significance', 'date'], column_id = 'state', column_class = 'norm';
   var h1 = d3.select('#details_h1')
@@ -373,61 +333,21 @@ function hideDetails() {
   d3.select('#initial').classed("hidden", false);
 }
 
-/**
- * Show a tooltip with the name of the feature.
- *
- * @param {object} f - A GeoJSON Feature object.
- */
-function showTooltip(f) {
-  // Get the ID of the feature.
-  var id = getIdOfFeature(f);
-  // Use the ID to get the data entry.
-  var d = dataById[id];
-
-  // Get the current mouse position (as integer)
-  var mouse = d3.mouse(d3.select('#map').node()).map(
-    function(d) { return parseInt(d); }
-  );
-
-  // Calculate the absolute left and top offsets of the tooltip. If the
-  // mouse is close to the right border of the map, show the tooltip on
-  // the left.
-  console.log(d)
-  var left = Math.min(width - 4 * d.name.length, mouse[0] + 5);
-  var top = mouse[1] + 25;
-
-  // Show the tooltip (unhide it) and set the name of the data entry.
-  // Set the position as calculated before.
-  tooltip.classed('hidden', false)
-    .attr("style", "left:" + left + "px; top:" + top + "px")
-    .html(d.name);
-}
-
-/**
- * Hide the tooltip.
- */
-function hideTooltip() {
-  tooltip.classed('hidden', true);
-}
 
 /**
  * Zoom the features on the map. This rescales the features on the map.
  * Keep the stroke width proportional when zooming in.
  */
-function doZoom() {
-  mapFeatures.attr("transform",
-    "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")")
-    // Keep the stroke width proportional. The initial stroke width
-    // (0.5) must match the one set in the CSS.
-    .style("stroke-width", 0.5 / d3.event.scale + "px");
-
-
-    circles = svg.selectAll("#circle_earthquake").attr("transform",
-    "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")")
-    // Keep the stroke width proportional. The initial stroke width
-    // (0.5) must match the one set in the CSS.
-    .style("stroke-width", 0.5 / d3.event.scale + "px");
+function doZoom(event) {
+  const transform = event.transform;
+  mapFeatures.attr("transform", transform);
+  mapFeatures.style("stroke-width", 0.5 / transform.k + "px");
+  svg.selectAll("#circle_earthquake")
+    .attr("transform", transform)
+    .style("stroke-width", 0.5 / transform.k + "px");
 }
+
+
 
 /**
  * Calculate the scale factor and the center coordinates of a GeoJSON
@@ -447,18 +367,23 @@ function calculateScaleCenter(features) {
   // Get the bounding box of the paths (in pixels!) and calculate a
   // scale factor based on the size of the bounding box and the map
   // size.
-  var bbox_path = path.bounds(features),
-      scale = 0.95 / Math.max(
-        (bbox_path[1][0] - bbox_path[0][0]) / width,
-        (bbox_path[1][1] - bbox_path[0][1]) / height
-      );
+  const bbox_path = d3.geoBounds(features);
+
+  // Calculate the scaling factor
+  const scale = 0.95 / Math.max(
+    (bbox_path[1][0] - bbox_path[0][0]) / width,
+    (bbox_path[1][1] - bbox_path[0][1]) / height
+  );
 
   // Get the bounding box of the features (in map units!) and use it
   // to calculate the center of the features.
-  var bbox_feature = d3.geo.bounds(features),
-      center = [
-        (bbox_feature[1][0] + bbox_feature[0][0]) / 2,
-        (bbox_feature[1][1] + bbox_feature[0][1]) / 2];
+  const bbox_feature = d3.geoBounds(features);
+
+  // Calculate the center
+  const center = [
+    (bbox_feature[1][0] + bbox_feature[0][0]) / 2,
+    (bbox_feature[1][1] + bbox_feature[0][1]) / 2
+  ];
 
   return {
     'scale': scale,
@@ -485,6 +410,5 @@ function getValueOfData(d) {
  * @param {object} f - A GeoJSON Feature object.
  */
 function getIdOfFeature(f) {
-    console.log(f)
   return f.properties.ADMIN;
 }
