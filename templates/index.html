@@ -120,8 +120,10 @@
             <div class="col-sm-12">
               <div id="details">
                 <h1 id="details_h1"></h1>
-                <table id="map_table" class="table">
-                </table>
+                <div class="scroll">
+                  <table id="map_table" class="table">
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -150,14 +152,36 @@
               </div>
             </div>
         </div>
-          <div class="row" style="margin-top: 15px;"> <!-- SECOND ROW-->
+          <div class="row" style="margin-top: 15px;"> <!-- THIRD ROW-->
             <div class="col-sm-12">
               <div class="text-center">
-                <button type="button" class="text-center btn btn-primary" onclick="performTSNE()">ELABORATE</button>
+                <button type="button" class="text-center btn btn-primary" onclick="performTSNE()">ELABORATE TSNE</button>
               </div>
             </div>
+          </div>
+          <div class="row" style="margin-top: 30px;"> <!-- FOURTH ROW-->
+            <div class="col-sm-12">
+              <div class="text-center">
+                <p class="text-center">TIMESERIES</p>
+                <div id="TIMESERIES_legend" style="border: 4px; border-style: inset; border-color: #327ab7;">
+                  <h3 id="TIMESERIES_text">SELECT 1 OR MORE COUNTRIES ON THE MAP</h3>
+                  <div class="row" id="row_legend">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="TIMESERIES_charts">
+
+          </div>
+          <div class="row" style="margin-top: 15px;"> <!-- THIRD ROW-->
+            <div class="col-sm-12">
+              <div class="text-center">
+                <button type="button" class="text-center btn btn-primary" onclick="performTimeseries()">ELABORATE TIMESERIES</button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
     </div>
 
     <!-- JS libraries -->
@@ -165,18 +189,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script src="http://cdn.rawgit.com/Eonasdan/bootstrap-datetimepicker/a549aa8780dbda16f6cff545aeabc3d71073911e/src/js/bootstrap-datetimepicker.js"></script>
-    
-    <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>-->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.2/d3.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js"></script>
 
     <!-- Custom JS code -->
-    <script src="{{url_for('static',filename='/js/utils.js')}}"></script>
-    <script src="{{url_for('static',filename='/js/map.js')}}"></script>
-    <script src="{{url_for('static',filename='/js/scatterplot.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static',filename='/js/utils.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static',filename='/js/map.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static',filename='/js/timeseries.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static',filename='/js/scatterplot.js')}}"></script>
+
     <script type="text/javascript">
       function performTSNE() {
-        console.log(selectedCountries)
         var country_data = {}
         for (const country of selectedCountries) {
           country_data[country] = dataById.get(country)
@@ -191,7 +214,15 @@
           }
         })
         .then((response) => response.json())
-        .then((json) => load_scatterplot(json.result, json.input));
+        .then((json) => load_scatterplot(json.result, json.input, country_colors));
+      }
+
+      function performTimeseries() {
+        var country_data = {}
+        for (const country of selectedCountries) {
+          country_data[country] = dataById.get(country)
+        }
+        load_timeseries(country_data, country_colors);
       }
     </script>
     <script type="text/javascript">

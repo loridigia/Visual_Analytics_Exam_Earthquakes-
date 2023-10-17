@@ -1,16 +1,3 @@
-const colors = [
-    "#FF5733", // Red
-    "#33FF57", // Green
-    "#5733FF", // Blue
-    "#cfc50e", // Yellow
-    "#FF33FF", // Magenta
-    "#20c9c9", // Cyan
-    "#FFA500", // Orange
-    "#8B4513", // Brown
-    "#3f7532", // Dark-green
-    "#000000"  // BLACK
-  ];
-
 function reset_scatterplot() {
     console.log(d3.select("#scatterplot").select("svg"))
     d3.select("#scatterplot").select("svg").remove();
@@ -19,16 +6,16 @@ function reset_scatterplot() {
     d3.select("#TSNE_info_legend").selectAll("div").remove().remove()
   }
 
-country_colors = {}
-function load_scatterplot(data, input) {
-    reset_scatterplot()
-    load_click_circle()
+function load_scatterplot(data, input, countryColors) {
     console.log(data)
     console.log(input)
+    console.log(countryColors)
+    reset_scatterplot()
+    load_click_circle()
     const xyvalues = calculate_min_max(data)
 
     // set the dimensions and margins of the graph
-    var margin = {top: 10, right: 30, bottom: 30, left: 60},
+    let margin = {top: 10, right: 30, bottom: 30, left: 60},
     width = (window.innerWidth / 2) - (window.innerWidth * 0.04) ,
     height = (window.innerHeight / 2);
 
@@ -43,7 +30,7 @@ function load_scatterplot(data, input) {
         "translate(" + 15 + "," + 10 + ")");
 
     // Add X axis
-    var x = d3.scaleLinear()
+    let x = d3.scaleLinear()
     .domain([xyvalues.minX, xyvalues.maxX])
     .range([ 0, width ]);
 
@@ -52,7 +39,7 @@ function load_scatterplot(data, input) {
     .call(d3.axisBottom(x));
 
     // Add Y axis
-    var y = d3.scaleLinear()
+    let y = d3.scaleLinear()
     .domain([xyvalues.minY, xyvalues.maxY])
     .range([ height, 0]);
 
@@ -62,29 +49,22 @@ function load_scatterplot(data, input) {
     picked_colors = []
     
     for (const key in data) {
-        let color;
-        do {
-          color = colors[Math.floor(Math.random() * colors.length)];
-        } while (picked_colors.includes(color));
-        
-        country_colors[key] = color
-        picked_colors.push(color)
         svg_scatter.selectAll(key)
         .data(data[key])
         .enter()
         .append("circle")
         .attr("cx", d => x(d.tsneX))
         .attr("cy", d => y(d.tsneY))
-        .attr("r", 2.5)
-        .style("fill", color)
+        .attr("r", 3)
+        .style("fill", countryColors[key])
         .on('click', function(event, f) {getDetail(f, data[key], input[key])});
     }
-    loadLegend()
+    loadLegend(countryColors)
 }
 
-function loadLegend(){
+function loadLegend(countryColors){
     d3.select("#TSNE_text").remove();
-    const legendData = Object.entries(country_colors).map(([label, color]) => ({ label, color }));
+    const legendData = Object.entries(countryColors).map(([label, color]) => ({ label, color }));
     parentElement1 = d3.select("#TSNE_colors_legend_1")
     parentElement2 = d3.select("#TSNE_colors_legend_2")
 
@@ -142,10 +122,10 @@ function load_svg_legend(parentElement, legendData) {
 
 function load_click_circle() {
     parentElement = d3.select("#TSNE_info_legend")
-    var rowDiv = parentElement.append("div")
+    let rowDiv = parentElement.append("div")
         .attr("class", "row")
         .style("padding-top", "15px");
-    var col1Div = rowDiv.append("div")
+    let col1Div = rowDiv.append("div")
         .attr("class", "col-sm-12");
     col1Div.append("h3")
         .text("Click on circles to load details here")
@@ -158,27 +138,25 @@ function getDetail(f, data, input){
     parentElement.selectAll("div").remove()
     const idx = data.findIndex(obj => obj.tsneX === f.tsneX && obj.tsneY === f.tsneY);
     country_info = input[idx]
-    console.log(input[idx])
-    console.log(country_colors)
 
     // Convert the object entries into an array of pairs
-    var entries = Object.entries(country_info);
+    let entries = Object.entries(country_info);
 
     // Iterate over the pairs two at a time
-    for (var i = 0; i < entries.length; i += 2) {
-        var pair1 = entries[i];
-        var pair2 = entries[i + 1];
+    for (let i = 0; i < entries.length; i += 2) {
+        let pair1 = entries[i];
+        let pair2 = entries[i + 1];
         if (pair1[0] == "state"){
             continue
         }
 
         if (pair1[0] == "date") {
             date = new Date(pair1[1])
-            var day = date.getUTCDate();
-            var month = date.getUTCMonth() + 1; // Add 1 because months are 0-indexed
-            var year = date.getUTCFullYear();
-            var hours = date.getUTCHours();
-            var minutes = date.getUTCMinutes();
+            let day = date.getUTCDate();
+            let month = date.getUTCMonth() + 1; // Add 1 because months are 0-indexed
+            let year = date.getUTCFullYear();
+            let hours = date.getUTCHours();
+            let minutes = date.getUTCMinutes();
             pair1[1] =
             (day < 10 ? '0' : '') + day + '/' +
             (month < 10 ? '0' : '') + month + '/' +
@@ -186,12 +164,12 @@ function getDetail(f, data, input){
             (hours < 10 ? '0' : '') + hours + ':' +
             (minutes < 10 ? '0' : '') + minutes;
         }
-        var rowDiv = parentElement.append("div")
+        let rowDiv = parentElement.append("div")
             .attr("class", "row");
         if (pair2) {
-            var col1Div = rowDiv.append("div")
+            let col1Div = rowDiv.append("div")
                 .attr("class", "col-sm-6");
-            var col2Div = rowDiv.append("div")
+            let col2Div = rowDiv.append("div")
                 .attr("class", "col-sm-6");
             col1Div.append("p")
                 .text(pair1[0] + ": " + pair1[1])
@@ -201,7 +179,7 @@ function getDetail(f, data, input){
                 .style("text-align", "left");
         }
         else {
-            var col1Div = rowDiv.append("div")
+            let col1Div = rowDiv.append("div")
                 .attr("class", "col-sm-12");
             col1Div.append("p")
                 .text(pair1[0] + ": " + pair1[1])
@@ -212,10 +190,10 @@ function getDetail(f, data, input){
 }
 
 function calculate_min_max(data){
-    var maxX = -99999999999
-    var maxY = -99999999999
-    var minX = 99999999999
-    var minY = 99999999999
+    let maxX = -99999999999
+    let maxY = -99999999999
+    let minX = 99999999999
+    let minY = 99999999999
     for (const key in data) {
         if (data.hasOwnProperty(key)) {
         // Iterate through the array of objects for each key

@@ -13,3 +13,9 @@
 	font-size: 11px;
 	fill: #3c373d;
 }
+
+.scrollable-element {
+	max-height: 50px; 
+    overflow-y: auto; 
+}
+

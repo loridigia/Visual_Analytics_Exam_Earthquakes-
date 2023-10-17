@@ -1,3 +1,16 @@
+const colors = [
+  "#FF5733", // Red
+  "#33FF57", // Green
+  "#5733FF", // Blue
+  "#cfc50e", // Yellow
+  "#FF33FF", // Magenta
+  "#20c9c9", // Cyan
+  "#FFA500", // Orange
+  "#8B4513", // Brown
+  "#3f7532", // Dark-green
+  "#000000"  // BLACK
+];
+
 
 var min_magnitudo = null
 var max_magnitudo = null
@@ -8,6 +21,8 @@ var max_significance = null
 var min_date = null
 var max_date = null
 var selectedCountries = []
+var selectedColors = []
+var country_colors = new Object();
 
 function load_filters() {
   min_magnitudo = Number.parseInt(document.getElementById("min-magnitudo").value)
@@ -64,6 +79,9 @@ var eqSizeScale = d3.scaleLinear()
 
 function reset_map() {
   d3.select("svg").remove();
+  selectedCountries = []
+  selectedColors = []
+  country_colors = new Object();
 }
 
 function load_map() {
@@ -193,9 +211,18 @@ function load_map() {
           d3.select(this).style("fill", "black");
           const index = selectedCountries.indexOf(country);
           selectedCountries.splice(index, 1);
+          colorToRemove = country_colors[country]
+          delete country_colors[country];
+          console.log(country_colors)
+          selectedColors = selectedColors.filter(item => item !== colorToRemove)
         } else {
           d3.select(this).style("fill", "red");
           selectedCountries.push(country);
+          choosedColor = get_color()
+          console.log(country_colors)
+          console.log(choosedColor)
+          country_colors[country] = choosedColor
+          selectedColors.push(color)
         }
       });
 
@@ -204,6 +231,15 @@ function load_map() {
     });
 
   });
+}
+
+function get_color() {
+  for (color of colors) {
+    if (selectedColors.includes(color)){
+      continue
+    }
+    return color
+  }
 }
 
 var addMagnitudeLegend = function()
