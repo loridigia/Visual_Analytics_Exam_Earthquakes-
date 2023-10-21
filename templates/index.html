@@ -7,6 +7,7 @@
     <!-- CSS libraries -->
     <link href="http://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" rel="stylesheet" type="text/css">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet"/>
+    
     <link href="http://cdn.rawgit.com/Eonasdan/bootstrap-datetimepicker/a549aa8780dbda16f6cff545aeabc3d71073911e/build/css/bootstrap-datetimepicker.css" rel="stylesheet"/>
 
     <!-- Custom CSS styles -->
@@ -120,7 +121,7 @@
             <div class="col-sm-12">
               <div id="details">
                 <h1 id="details_h1"></h1>
-                <div class="scroll">
+                <div id="scrollable_details" class="scroll">
                   <table id="map_table" class="table">
                   </table>
                 </div>
@@ -132,9 +133,9 @@
           <div class="row"> <!-- FIRST ROW-->
             <div class="col-sm-12">
               <div class="text-center">
-                <p class="text-center">T-SNE ALGORHITM</p>
+                <h3>T-SNE ALGORHITM</h3>
                 <div id="TSNE_legend" style="border: 4px; border-style: inset; border-color: #327ab7;">
-                  <h3 id="TSNE_text">SELECT 1 OR MORE COUNTRIES ON THE MAP</h3>
+                  <h4 id="TSNE_text">SELECT 1 OR MORE COUNTRIES ON THE MAP</h4>
                   <div class="row" id="row_legend">
                     <div class="col-sm-2" id="TSNE_colors_legend_1"></div>
                     <div class="col-sm-2" id="TSNE_colors_legend_2"></div>
@@ -145,10 +146,10 @@
             </div>
           </div>
           <div class="row" style="margin-top: 20px;"> <!-- SECOND ROW-->
-            <div class="col-sm-12">
+            <div class="col-sm-12" style="padding-left: 0px !important;">
               <div class="text-center">
-                <p>** Parameters used: Magnitude, Latitude, Longitude, Depth, Significance</p>
-                <div id="scatterplot"></div>              
+                <div id="scatterplot">
+                </div>              
               </div>
             </div>
         </div>
@@ -162,17 +163,18 @@
           <div class="row" style="margin-top: 30px;"> <!-- FOURTH ROW-->
             <div class="col-sm-12">
               <div class="text-center">
-                <p class="text-center">TIMESERIES</p>
+                <h3>TEMPORAL ANALYSIS</h3>
                 <div id="TIMESERIES_legend" style="border: 4px; border-style: inset; border-color: #327ab7;">
-                  <h3 id="TIMESERIES_text">SELECT 1 OR MORE COUNTRIES ON THE MAP</h3>
+                  <h4 id="TIMESERIES_text">SELECT 1 OR MORE COUNTRIES ON THE MAP</h4>
                   <div class="row" id="row_legend">
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div id="TIMESERIES_charts">
-
+          <div class="row" style="margin-top: 15px;"> <!-- THIRD ROW-->
+            <div id="TIMESERIES_charts">
+          </div>
           </div>
           <div class="row" style="margin-top: 15px;"> <!-- THIRD ROW-->
             <div class="col-sm-12">
@@ -222,7 +224,7 @@
         for (const country of selectedCountries) {
           country_data[country] = dataById.get(country)
         }
-        load_timeseries(country_data, country_colors);
+        load_timeseries(country_data, country_colors, null);
       }
     </script>
     <script type="text/javascript">

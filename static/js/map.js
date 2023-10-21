@@ -1,11 +1,11 @@
 const colors = [
   "#FF5733", // Red
-  "#33FF57", // Green
   "#5733FF", // Blue
-  "#cfc50e", // Yellow
   "#FF33FF", // Magenta
-  "#20c9c9", // Cyan
   "#FFA500", // Orange
+  "#33FF57", // Green
+  "#20c9c9", // Cyan
+  "#cfc50e", // Yellow
   "#8B4513", // Brown
   "#3f7532", // Dark-green
   "#000000"  // BLACK
@@ -95,7 +95,7 @@ function load_map() {
   // We specify the dimensions for the map container. We use the same
   // width and height as specified in the CSS above.
   // 900 x 600 = 1.5
-  width = (window.innerWidth / 2) - (window.innerWidth * 0.04),
+  width = (window.innerWidth / 2) - (window.innerWidth * 0.03),
   height = (window.innerHeight / 2);
 
   // We create a SVG element in the map container and give it some
@@ -132,17 +132,9 @@ function load_map() {
   // We prepare an object to later have easier access to the data.
   dataById = new Map();
 
-  // We prepare a number format which will always return 2 decimal places.
-  var formatNumber = d3.format('.2f');
-
-
-  console.log("test")
   // Load the features from the GeoJSON.
   d3.json('./static/data/world-countries.geojson')
   .then(function (features) {
-
-    // Get the scale and center parameters from the features.
-    var scaleCenter = calculateScaleCenter(features);
 
     projection.scale(330)
     .center([4, 54])
@@ -188,6 +180,24 @@ function load_map() {
       .attr('r', 0)
       .style('fill', (d) => eqColorScale(parseInt(d.magnitudo)))
       .on('click', function(event, f) {clickCircle(f)})
+      .on('dblclick', function(event, f) {
+        country = f['state']
+        const map_country = d3.select(`path[id="${country}"]`);
+        if (selectedCountries.includes(country)) {
+          map_country.style("fill", "black");
+          const index = selectedCountries.indexOf(country);
+          selectedCountries.splice(index, 1);
+          colorToRemove = country_colors[country]
+          delete country_colors[country];
+          selectedColors = selectedColors.filter(item => item !== colorToRemove)
+        } else {
+          map_country.style("fill", "red");
+          selectedCountries.push(country);
+          choosedColor = get_color()
+          country_colors[country] = choosedColor
+          selectedColors.push(color)
+        }
+      })
       .transition()
       .duration(900)
       .ease(d3.easeElastic)
@@ -200,6 +210,7 @@ function load_map() {
       .data(features.features)
       .join('path') // Use `join` to handle enter, update, and exit selections
       .attr('d', path)
+      .attr("id", d => {return d["properties"]["ADMIN"];})
       .style("fill", "black")
       .on('click', function(event, f) {
         showDetails(f)
@@ -213,14 +224,11 @@ function load_map() {
           selectedCountries.splice(index, 1);
           colorToRemove = country_colors[country]
           delete country_colors[country];
-          console.log(country_colors)
           selectedColors = selectedColors.filter(item => item !== colorToRemove)
         } else {
           d3.select(this).style("fill", "red");
           selectedCountries.push(country);
           choosedColor = get_color()
-          console.log(country_colors)
-          console.log(choosedColor)
           country_colors[country] = choosedColor
           selectedColors.push(color)
         }

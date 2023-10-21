@@ -3,22 +3,52 @@ function clear_timeseries(){
     d3.select("#TIMESERIES_legend").remove()
 }
 
-function load_timeseries(dataByCountry, countryColors) {
-    // each magnitude = 1 graph
-    // each country 1 color part bar in stack
-    // each year X
-    // count (year, mag) Y 
+function load_timeseries(dataByCountry, countryColors, magnitude) {
     clear_timeseries()
-    console.log(dataByCountry);
     convertedData = convert_data(dataByCountry);
-    console.log(convertedData);
     const magnitudes = Object.getOwnPropertyNames(convertedData);
-    console.log(magnitudes)
-    for (const magnitude of magnitudes) {
-        append_timeseries(convertedData[magnitude], countryColors);
-      }
+    if (magnitude == null) {
+      console.log("IS NULL")
+      choosen_mag = magnitudes[0]
+    }
+    else {
+      choosen_mag = magnitude
+    }
+    console.log("MAG")
+    console.log(choosen_mag)
+    append_timeseries(convertedData[choosen_mag], countryColors);
+
+    const parentElementTimeseries = d3.select("#TIMESERIES_charts")
+    filter_mag_row = parentElementTimeseries.append("div")
+                      .lower()
+                      .attr("class", "row");
+    left_col = filter_mag_row.append("div").attr("class", "col-sm-9")
+    center_col = filter_mag_row.append("div").attr("class", "col-sm-2").style("padding-top", "10px").style("text-align", "right")
+    right_col = filter_mag_row.append("div").attr("class", "col-sm-1").style("text-align", "left")
+    const select = right_col
+                .append('select')
+                .attr('class','select')
+                .attr('id', 'mag_timeseries_select')
+                .on('change', function(event, f) {onchange(dataByCountry, countryColors)})
+                .lower()
+    var options = select
+                .selectAll('option')
+                .data(magnitudes).enter()
+                .append('option')
+                .text(function (d) { return d; });
+
+    select.property('value', choosen_mag)
+    const p = center_col
+                  .append('text')
+                  .text('MAGNITUDE')
+                  .lower()
 
 }
+
+function onchange(dataByCountry, countryColors) {
+	selectValueMagnitude = d3.select('#mag_timeseries_select').property('value')
+  load_timeseries(dataByCountry, countryColors, selectValueMagnitude)
+};
 
 
 function append_timeseries(data, countryColors) {
@@ -29,16 +59,18 @@ function append_timeseries(data, countryColors) {
     console.log(data)
     const parentElementTimeseries = d3.select("#TIMESERIES_charts")
     svgParent = parentElementTimeseries.append("div")
-        .attr("class", "row")
-        .style("padding-top", "15px");
+        .attr("class", "row");
     // set the dimensions and margins of the graph
-    const margin = {top: 0, right: 0, bottom: 0, left: 20};
+    const margin = {top: 80, right: 0, bottom: 0, left: 20};
 
     let width = (window.innerWidth / 2) - (window.innerWidth * 0.04);
     let height = (window.innerHeight / 2);
 
     width = width - margin.left - margin.right;
     height = height - margin.top - margin.bottom;
+
+    width = (window.innerWidth / 2) - (window.innerWidth * 0.04) ,
+    height = (window.innerHeight / 2);
 
     console.log(height)
     maxMinY = findMaxMinSums(data)
@@ -47,11 +79,11 @@ function append_timeseries(data, countryColors) {
     // append the svg object to the body of the page
     const timeserieSVG = svgParent.append("svg")
         .attr("id","timeseries-svg")
-        .attr("width", 100 + "%")
-        .attr("height", height + 50)
-        .attr("preserveAspectRatio", "xMinYMin")
+        .attr("width", width + 30)
+        .attr("height", height + 100)
+        .style("padding-left", "25px")
     .append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+        .attr("transform", `translate(15, 60)`);
 
 
     // list of value keys
@@ -111,17 +143,17 @@ function append_timeseries(data, countryColors) {
         tooltip.style("opacity", .9)
         d3.select(this).style("opacity", .5)
     }
+
     const mousemove = function(event, d) {
-        console.log(d)
         const formater =  d3.format(",")
             tooltip
-            .html(formater(d[1]))
+            .html(formater(d[1] - d[0]))
             .style("display", "block")
-            .style("top", (event.clientY + window.scrollY) + 20 + "px")
-            .style("left", (event.clientX + window.scrollX) + 20 + "px");
+            .style("top", (event.clientY) + 20 + "px")
+            .style("left", (event.clientX) + 20 + "px");
         }
     const mouseleave = function(d) {
-        tooltip.style("opacity", 1)
+        tooltip.style("opacity", 0)
         d3.select(this).style("opacity", 1)
     }
 
@@ -138,7 +170,7 @@ function append_timeseries(data, countryColors) {
         .attr("x",d => xScale(d.data.year))
         .attr("y",d => yScale(d[1]))
         .attr("width", xScale.bandwidth())
-        .attr("height", d => { console.log(d); return yScale(d[0]) - yScale(d[1]) })
+        .attr("height", d => {return yScale(d[0]) - yScale(d[1]) })
         .on("mouseover", mouseover)
         .on("mousemove", mousemove)
         .on("mouseleave", mouseleave)

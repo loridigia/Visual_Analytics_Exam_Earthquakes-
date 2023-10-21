@@ -14,6 +14,10 @@ function load_scatterplot(data, input, countryColors) {
     load_click_circle()
     const xyvalues = calculate_min_max(data)
 
+    const parent_svg_div = d3.select("#scatterplot")
+        .append("p")
+        .text("** Parameters used: Magnitude, Latitude, Longitude, Depth, Significance")
+
     // set the dimensions and margins of the graph
     let margin = {top: 10, right: 30, bottom: 30, left: 60},
     width = (window.innerWidth / 2) - (window.innerWidth * 0.04) ,

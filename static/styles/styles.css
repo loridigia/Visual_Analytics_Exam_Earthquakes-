@@ -53,7 +53,7 @@
 
   .scroll {
     overflow-y: scroll;
-    height: 500px;
+    height: 600px;
     }
 
   /**
@@ -84,7 +84,7 @@
   }
 
   #timeseries-svg text {
-    font-size: 8px;
+    font-size: 9px;
   }
 
   text {
@@ -110,22 +110,16 @@
     font-weight: 400;
     fill: #999999;
   }
-  text.chart-source {
-    font-size: 8px;
-    fill: #999999;
-  }
-  text.copyright {
-    font-size: 8px;
-    fill: #999999;
-  }
   .mytooltip {
-    background-color: #0c0c0c;
-    font-size: 11px;
-    min-width: 100px;
-    min-height: 100px;
-    padding: 4px;
-    color: #000000;
+    background-color: #ffffff;
+    font-size: 13px;
+    min-width: 30px;
+    min-height: 30px;
+    text-align: center;
+    padding: 5px;
+    color: black;
     border: 1px;
     border-color: black;
-    box-shadow: 0px 0px 3px 0px #E6E6E6;
+    box-shadow: 1px 5px 15px #c8c8c8;
+    border-radius: 50%;
   }
