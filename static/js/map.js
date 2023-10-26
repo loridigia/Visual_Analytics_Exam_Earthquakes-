@@ -28,35 +28,26 @@ function load_filters() {
   min_magnitudo = Number.parseInt(document.getElementById("min-magnitudo").value)
   max_magnitudo = Number.parseInt(document.getElementById("max-magnitudo").value)
 
-  var significance = document.getElementById("significance").value
-  if (significance == "*"){
-    min_significance = -999999
-    max_significance = 999999
-  } else {
-    splitted = significance.split("-")
-    min_depth = Number.parseInt(splitted[0])
-    max_depth = Number.parseInt(splitted[1])
+  min_significance = document.getElementById("min-significance").value
+  max_significance = document.getElementById("max-significance").value
+  if (max_significance.indexOf(">") != -1) {
+    max_significance = 9999999
   }
-  var depth = document.getElementById("depth").value;
-  if (depth == "*"){
-    min_depth = -999999
-    max_depth = 999999
-  } else {
-    splitted = depth.split("-")
-    min_depth = Number.parseInt(splitted[0])
-    max_depth = Number.parseInt(splitted[1])
+
+  min_depth = document.getElementById("min-depth").value
+  if (min_depth.indexOf(">") != -1) {
+    min_depth = -99999999
   }
+  max_depth = document.getElementById("max-depth").value
+  if (max_depth.indexOf(">") != -1) {
+    max_depth = 9999999
+  }
+
 
   min_date = $('#timestart').data('DateTimePicker').date()
   min_date = Date.parse(min_date.toString())
   max_date = $('#timeend').data('DateTimePicker').date()
   max_date = Date.parse(max_date.toString())
-
-  console.log("MIN MAG: " + min_magnitudo)
-  console.log("MAX MAG: " + max_magnitudo)
-  console.log("significance: " + significance)
-  console.log("min_date: " + min_date)
-  console.log("max_date: " + max_date)
 
 }
 
@@ -65,17 +56,18 @@ let dataById = null
 // We define a variable to later hold the data of the CSV.
 var earthquakeData;
 
-var eqDomain = [1, 2, 3, 4, 5, 6, 9 ];
+var eqDomain = [1, 2, 3, 4, 5, 6, 7, 8, 9 ];
 var eqColorScale = d3.scaleLinear()
                     .domain(eqDomain)
                     .range([
                             '#fdd49e','#fdbb84',
                             '#fc8d59','#ef6548',
-                            '#d7301f','#b30000','#7f0000'
+                            '#d7301f','#b30000','#7f0000',
+                            '#660101', '#450101'
                             ]);  
 var eqSizeScale = d3.scaleLinear()
                     .domain(eqDomain)
-                    .range([1.5,3,4.5,6,7.5,9,13.5])
+                    .range([1.5,3,4.5,6,7.5,9,11,13,14])
 
 function reset_map() {
   d3.select("svg").remove();
@@ -257,6 +249,9 @@ const legendObjs = [];
      legendObjs[i] = { mag: d };
   });
 
+console.log(legendObjs)
+
+
 // Some sizing and location info
 var lNodeSize = 40;
 var lXOffset = 15; 
@@ -273,9 +268,10 @@ svg.append("rect")
   .attr("transform", "translate(" + lTopLeft[0] + "," + lTopLeft[1] + ")");
 
 // Append the data and get the enter selection
-var lnodes = svg.selectAll("g")
+var lnodes = svg.selectAll("g.leg")
   .data(legendObjs)
-  .join("g");
+  .join("g")
+  .attr("class", "leg");
 
 // Append the circles to the enter selection
 lnodes.append("circle")
