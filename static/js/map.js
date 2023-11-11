@@ -169,7 +169,6 @@ function load_map() {
       .attr('id', 'circle_earthquake')
       .attr('cx', (d) => projection([d.longitude, d.latitude])[0])
       .attr('cy', (d) => projection([d.longitude, d.latitude])[1])
-      .attr('r', 0)
       .style('fill', (d) => eqColorScale(parseInt(d.magnitudo)))
       .on('click', function(event, f) {clickCircle(f)})
       .on('dblclick', function(event, f) {
@@ -190,10 +189,8 @@ function load_map() {
           selectedColors.push(color)
         }
       })
-      .transition()
-      .duration(900)
-      .ease(d3.easeElastic)
-      .attr('r', (d) => eqSizeScale(d.magnitudo));
+      .attr('r', (d) => eqSizeScale(d.magnitudo))
+      .attr('mag', (d) => d.magnitudo);
       
       // remove any exit selection
       circles.exit().remove();
@@ -248,8 +245,6 @@ const legendObjs = [];
   eqDomain.forEach(function(d,i) {
      legendObjs[i] = { mag: d };
   });
-
-console.log(legendObjs)
 
 
 // Some sizing and location info
@@ -380,10 +375,16 @@ function hideDetails() {
  */
 function doZoom(event) {
   const transform = event.transform;
+  console.log(event.transform)
   mapFeatures.attr("transform", transform);
   mapFeatures.style("stroke-width", 0.5 / transform.k + "px");
   svg.selectAll("#circle_earthquake")
     .attr("transform", transform)
+    .attr("r", function(d) {
+      var mag = d3.select(this).attr("mag")
+      var newR = eqSizeScale(mag) / transform.k;
+      return newR;
+    })
     .style("stroke-width", 0.5 / transform.k + "px");
 }
 

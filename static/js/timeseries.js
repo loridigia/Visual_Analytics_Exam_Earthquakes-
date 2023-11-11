@@ -83,7 +83,7 @@ function append_timeseries(data, countryColors) {
         .attr("height", height + 100)
         .style("padding-left", "25px")
     .append("g")
-        .attr("transform", `translate(15, 60)`);
+        .attr("transform", `translate(25, 60)`);
 
 
     // list of value keys

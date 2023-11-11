@@ -1,6 +1,7 @@
 function reset_scatterplot() {
     console.log(d3.select("#scatterplot").select("svg"))
     d3.select("#scatterplot").select("svg").remove();
+    d3.select("#scatterplot").select("p").remove();
     d3.select("#TSNE_colors_legend_1").select("svg").remove();
     d3.select("#TSNE_colors_legend_2").select("svg").remove();
     d3.select("#TSNE_info_legend").selectAll("div").remove().remove()
@@ -31,7 +32,7 @@ function load_scatterplot(data, input, countryColors) {
     .attr("height", height + 30)
     .append("g")
     .attr("transform",
-        "translate(" + 15 + "," + 10 + ")");
+        "translate(" + 25 + "," + 10 + ")");
 
     // Add X axis
     let x = d3.scaleLinear()
