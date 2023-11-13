@@ -6,11 +6,14 @@ The aim of this project is to create a tool (specifically using D3.js) that allo
  
 
 ## Table of Contents
-
+- [Screenshot] (#screenshot)
 - [Requirements](#requirements)
 - [How to Run](#how-to-run)
 - [Authors](#authors)
 - [License](#license)
+
+## Screenshot
+![Screenshot](https://github.com/loridigia/Visual_Analytics_Exam_Earthquakes-/blob/main/img/Screenshot.png)
 
 ## Requirements
 To install the necessary Python dependencies:
