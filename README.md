@@ -13,7 +13,7 @@ The aim of this project is to create a tool (specifically using D3.js) that allo
 - [License](#license)
 
 ## Screenshot
-![Screenshot](https://github.com/loridigia/Visual_Analytics_Exam_Earthquakes-/blob/main/imgages/Screenshot.png)
+![Screenshot](https://github.com/loridigia/Visual_Analytics_Exam_Earthquakes-/blob/main/images/Screenshot.png)
 
 ## Requirements
 To install the necessary Python dependencies:
