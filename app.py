@@ -51,7 +51,10 @@ def tsne():
             total_df = df
         else:
             total_df = pd.concat([total_df, df], ignore_index=True)
-    data_tsne= TSNE(random_state=RS, perplexity=30).fit_transform(total_df)
+    if len(total_df) < 30:
+        data_tsne= TSNE(random_state=RS, perplexity=len(total_df) - 1).fit_transform(total_df)
+    else:
+        data_tsne= TSNE(random_state=RS, perplexity=30).fit_transform(total_df)
     df_tsne = pd.DataFrame(data_tsne) 
     df_tsne.columns = ["tsneX","tsneY"]
     country_data = df_tsne.to_dict(orient='records')
