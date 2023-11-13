@@ -6,7 +6,7 @@ The aim of this project is to create a tool (specifically using D3.js) that allo
  
 
 ## Table of Contents
-- [Screenshot] (#screenshot)
+- [Screenshot](#screenshot)
 - [Requirements](#requirements)
 - [How to Run](#how-to-run)
 - [Authors](#authors)
