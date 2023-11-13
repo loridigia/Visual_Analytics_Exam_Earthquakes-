@@ -34,6 +34,6 @@ To install the necessary Python dependencies:
 
 
 ## License
-[MIT](https://choosealicense.com/licenses/mit/)
+[MIT](https://github.com/loridigia/Visual_Analytics_Exam_Earthquakes-/blob/main/README.md)
 
 
