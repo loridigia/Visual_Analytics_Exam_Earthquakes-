@@ -7,13 +7,18 @@ The aim of this project is to create a tool (specifically using D3.js) that allo
 
 ## Table of Contents
 
+- [Requirements](#requirements)
 - [How to Run](#how-to-run)
-- [Features](#features)
-- [Authors](#Authors)
+- [Authors](#authors)
 - [License](#license)
 
-## How to Run
+## Requirements
+To install the necessary Python dependencies:
 
+    1) Go to the root of the project
+    2) Execute pip install -r requirements.txt
+
+## How to Run
 In order to run the tools:
     
     1) Go to the root of the project
@@ -22,11 +27,6 @@ In order to run the tools:
     Alternative
     2.2) python3 -m flask --app app.py run --port 4242 --debug
 
-## Requirements
-To install the necessary Python dependencies:
-
-    1) Go to the root of the project
-    2) Execute pip install -r requirements.txt
 
 
 ## Authors
