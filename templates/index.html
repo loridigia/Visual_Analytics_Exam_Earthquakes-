@@ -181,6 +181,28 @@
             <div class="col-sm-12">
               <div class="text-center">
                 <h3>T-SNE</h3>
+                <div class="row" id="row_legend">
+                  <div class="col-sm-2">
+                    <input class="form-check-input" type="checkbox" id="checkbox_date" value="option1">
+                    <label class="form-check-label" for="checkbox_date">DATE</label>
+                  </div>
+                  <div class="col-sm-2">
+                    <input class="form-check-input" type="checkbox" id="checkbox_significance" value="option2" checked>
+                    <label class="form-check-label" for="checkbox_significance">SIGNIFICANCE</label>
+                  </div>
+                  <div class="col-sm-3">
+                    <input class="form-check-input" type="checkbox" id="checkbox_lat_long" value="option3" checked>
+                    <label class="form-check-label" for="checkbox_lat_long">LATITUDE & LONGITUDE</label>
+                  </div>
+                  <div class="col-sm-2">
+                    <input class="form-check-input" type="checkbox" id="checkbox_magnitude" value="option3" checked>
+                    <label class="form-check-label" for="checkbox_magnitude">MAGNITUDO</label>
+                  </div>
+                  <div class="col-sm-2">
+                    <input class="form-check-input" type="checkbox" id="checkbox_depth" value="option3" checked>
+                    <label class="form-check-label" for="checkbox_depth">DEPTH</label>
+                  </div>
+                </div>
                 <div id="TSNE_legend" style="border: 4px; border-style: inset; border-color: #327ab7;">
                   <h4 id="TSNE_text">SELECT 1 OR MORE COUNTRIES ON THE MAP</h4>
                   <div class="row" id="row_legend">
@@ -249,6 +271,32 @@
 
     <script type="text/javascript">
       function performTSNE() {
+        var checkbox_date = document.getElementById("checkbox_date");
+        var checkbox_significance = document.getElementById("checkbox_significance");
+        var checkbox_lat_long = document.getElementById("checkbox_lat_long");
+        var checkbox_magnitude = document.getElementById("checkbox_magnitude");
+        var checkbox_depth = document.getElementById("checkbox_depth");
+        excluded = []
+        if (!checkbox_date.checked){
+          excluded.push("date")
+        }
+        if (!checkbox_significance.checked){
+          excluded.push("significance")
+        }
+        if (!checkbox_lat_long.checked){
+          excluded.push("latitude")
+          excluded.push("longitude")
+        }
+        if (!checkbox_magnitude.checked){
+          excluded.push("magnitudo")
+        }
+        if (!checkbox_depth.checked){
+          excluded.push("depth")
+        }
+        if (excluded.length > 4){
+          alert("!! ATTENTION !! Select at least 2 dimensions for TSNE elaboration");
+          return
+        }
         var country_data = {}
         for (const country of selectedCountries) {
           country_data[country] = dataById.get(country)
@@ -256,7 +304,8 @@
         fetch("http://localhost:4242/tsne", {
           method: "POST",
           body: JSON.stringify({
-            countries: country_data
+            countries: country_data,
+            excluded: excluded
           }),
           headers: {
             "Content-type": "application/json; charset=UTF-8"

@@ -39,6 +39,7 @@ def tsne():
 def tsne():
     req = request.get_json()
     countries = req["countries"]
+    excluded = req["excluded"]
     result = {}
     input = {}
     total_df = pd.DataFrame()
@@ -46,7 +47,7 @@ def tsne():
     for country_name in countries.keys():
         original_df = pd.DataFrame(countries[country_name])
         input[country_name] = original_df.to_dict(orient='records')
-        df = original_df.drop(["state", "date"], axis=1)
+        df = original_df.drop(["state"] + excluded, axis=1)
         if total_df.empty:
             total_df = df
         else:
